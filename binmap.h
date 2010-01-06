@@ -4,8 +4,6 @@
 #include <cstddef>
 #include "bin.h"
 
-//#define BINMAP_16_BITS
-
 #ifndef BINMAP_16_BITS
 
 /**

@@ -1,25 +1,30 @@
+#define BINMAP_16_BITS
+
 #include "bin.h"
 #include "binmap.h"
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <ctime>
 
 
 /* Binmap unit test */
 bool test0() {
-    const size_t N = 65536;
+    const size_t N = 32 * 65536;
 
     assert( N <= RAND_MAX );
 
     uint32_t * bitmap = new uint32_t[ N / 32];
     binmap_t binmap;
 
-    unsigned int seed = time(NULL); // 1262801300;
+    memset(bitmap, 0, N / 8);
+
+    unsigned int seed = 1262805164; // time(NULL); // 1262801300;
     srandom( seed );
 
     /* Making random filling */
     fprintf(stderr, "Generation\n");
-    for(size_t i = 0; i < 6 * N; ++i) {
+    for(size_t i = 0; i < 4 * N; ++i) {
         const size_t n = random() % N;
 
         binmap.set(bin_t(2 * n));
@@ -34,6 +39,11 @@ bool test0() {
 
         if( f1 != f2 ) {
             fprintf(stderr, "Error: seed = %u\n", seed);
+
+            binmap.status();
+
+            delete [] bitmap;
+
             return false;
         }
     }
@@ -41,6 +51,8 @@ bool test0() {
     fprintf(stderr, "Ok: seed = %u\n", seed);
 
     binmap.status();
+
+    delete [] bitmap;
 
     return 0;
 }

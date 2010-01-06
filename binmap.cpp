@@ -195,7 +195,7 @@ ref_t binmap_t::alloc_cell() {
         for(; idx != stop_idx; --idx)
             m_cell[ idx ].m_free_next = static_cast<ref_t>(idx + 1);
 
-        m_free_top = static_cast<ref_t>(old_size);
+        m_free_top = static_cast<ref_t>(16 * old_size);
     }
 
     /* Pop an element from the free cell list */

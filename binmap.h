@@ -4,20 +4,33 @@
 #include <cstddef>
 #include "bin.h"
 
+//#define BINMAP_16_BITS
+
+#ifndef BINMAP_16_BITS
 
 /**
  * Type of bitmap
  */
 typedef uint32_t bitmap_t;
 
-const bitmap_t BITMAP_EMPTY  = 0x00000000;
-const bitmap_t BITMAP_FILLED = 0xffffffff;
-
-
 /**
  * Type of reference
  */
 typedef uint32_t ref_t;
+
+#else
+
+/**
+ * Type of bitmap
+ */
+typedef uint16_t bitmap_t;
+
+/**
+ * Type of reference
+ */
+typedef uint16_t ref_t;
+
+#endif
 
 
 /**

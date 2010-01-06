@@ -7,18 +7,46 @@
 #include "binmap.h"
 
 /* Constants */
+const bitmap_t BITMAP_EMPTY  = static_cast<bitmap_t>(0);
+const bitmap_t BITMAP_FILLED = static_cast<bitmap_t>(-1);
 
-static const uint64_t BITMAP_LAYER_BITS = 63;
+static const size_t ROOT_CELL = 0;
+
+static const uint64_t BITMAP_LAYER_BITS = 16 * sizeof(bitmap_t) - 1;
 
 static const bitmap_t BITMAP[] = {
-    0x00000001, 0x00000003, 0x00000002, 0x0000000f, 0x00000004, 0x0000000c, 0x00000008, 0x000000ff,
-    0x00000010, 0x00000030, 0x00000020, 0x000000f0, 0x00000040, 0x000000c0, 0x00000080, 0x0000ffff,
-    0x00000100, 0x00000300, 0x00000200, 0x00000f00, 0x00000400, 0x00000c00, 0x00000800, 0x0000ff00,
-    0x00001000, 0x00003000, 0x00002000, 0x0000f000, 0x00004000, 0x0000c000, 0x00008000, 0xffffffff,
-    0x00010000, 0x00030000, 0x00020000, 0x000f0000, 0x00040000, 0x000c0000, 0x00080000, 0x00ff0000,
-    0x00100000, 0x00300000, 0x00200000, 0x00f00000, 0x00400000, 0x00c00000, 0x00800000, 0xffff0000,
-    0x01000000, 0x03000000, 0x02000000, 0x0f000000, 0x04000000, 0x0c000000, 0x08000000, 0xff000000,
-    0x10000000, 0x30000000, 0x20000000, 0xf0000000, 0x40000000, 0xc0000000, 0x80000000, /* special */ 0xffffffff /* special */
+    static_cast<bitmap_t>(0x00000001), static_cast<bitmap_t>(0x00000003),
+    static_cast<bitmap_t>(0x00000002), static_cast<bitmap_t>(0x0000000f),
+    static_cast<bitmap_t>(0x00000004), static_cast<bitmap_t>(0x0000000c),
+    static_cast<bitmap_t>(0x00000008), static_cast<bitmap_t>(0x000000ff),
+    static_cast<bitmap_t>(0x00000010), static_cast<bitmap_t>(0x00000030),
+    static_cast<bitmap_t>(0x00000020), static_cast<bitmap_t>(0x000000f0),
+    static_cast<bitmap_t>(0x00000040), static_cast<bitmap_t>(0x000000c0),
+    static_cast<bitmap_t>(0x00000080), static_cast<bitmap_t>(0x0000ffff),
+    static_cast<bitmap_t>(0x00000100), static_cast<bitmap_t>(0x00000300),
+    static_cast<bitmap_t>(0x00000200), static_cast<bitmap_t>(0x00000f00),
+    static_cast<bitmap_t>(0x00000400), static_cast<bitmap_t>(0x00000c00),
+    static_cast<bitmap_t>(0x00000800), static_cast<bitmap_t>(0x0000ff00),
+    static_cast<bitmap_t>(0x00001000), static_cast<bitmap_t>(0x00003000),
+    static_cast<bitmap_t>(0x00002000), static_cast<bitmap_t>(0x0000f000),
+    static_cast<bitmap_t>(0x00004000), static_cast<bitmap_t>(0x0000c000),
+    static_cast<bitmap_t>(0x00008000), static_cast<bitmap_t>(0xffffffff),
+    static_cast<bitmap_t>(0x00010000), static_cast<bitmap_t>(0x00030000),
+    static_cast<bitmap_t>(0x00020000), static_cast<bitmap_t>(0x000f0000),
+    static_cast<bitmap_t>(0x00040000), static_cast<bitmap_t>(0x000c0000),
+    static_cast<bitmap_t>(0x00080000), static_cast<bitmap_t>(0x00ff0000),
+    static_cast<bitmap_t>(0x00100000), static_cast<bitmap_t>(0x00300000),
+    static_cast<bitmap_t>(0x00200000), static_cast<bitmap_t>(0x00f00000),
+    static_cast<bitmap_t>(0x00400000), static_cast<bitmap_t>(0x00c00000),
+    static_cast<bitmap_t>(0x00800000), static_cast<bitmap_t>(0xffff0000),
+    static_cast<bitmap_t>(0x01000000), static_cast<bitmap_t>(0x03000000),
+    static_cast<bitmap_t>(0x02000000), static_cast<bitmap_t>(0x0f000000),
+    static_cast<bitmap_t>(0x04000000), static_cast<bitmap_t>(0x0c000000),
+    static_cast<bitmap_t>(0x08000000), static_cast<bitmap_t>(0xff000000),
+    static_cast<bitmap_t>(0x10000000), static_cast<bitmap_t>(0x30000000),
+    static_cast<bitmap_t>(0x20000000), static_cast<bitmap_t>(0xf0000000),
+    static_cast<bitmap_t>(0x40000000), static_cast<bitmap_t>(0xc0000000),
+    static_cast<bitmap_t>(0x80000000), /* special */ static_cast<bitmap_t>(0xffffffff) /* special */
 };
 
 
@@ -39,7 +67,6 @@ static inline fill_t get_fill_type(bitmap_t left_bitmap, bitmap_t right_bitmap) 
     return FILL_MIXED;
 }
 
-static const size_t ROOT_CELL = 0;
 
 
 /**
@@ -545,50 +572,49 @@ size_t binmap_t::cells_number() const {
  * Echo the binmap status to stdout
  */
 void binmap_t::status() const {
-    printf("bitmap:\n");
+//    printf("bitmap:\n");
+//    for(int i = 0; i < 16; ++i) {
+//        for(int j = 0; j < 64; ++j)
+//            printf("%d", get(bin_t(i * 64 + j)));
+//        printf("\n");
+//    }
 
-    for(int i = 0; i < 16; ++i) {
-        for(int j = 0; j < 64; ++j)
-            printf("%d", get(bin_t(i * 64 + j)));
-        printf("\n");
-    }
-
-    printf("cells number: %u\n", cells_number());
-    printf("blocks number: %u\n", blocks_number());
+    printf("size: %u bytes\n", sizeof(*this) + (16 * sizeof(cell_t) + sizeof(uint32_t)) * blocks_number());
+    printf("cells number: %u (of %u)\n", cells_number(), 16 * blocks_number());
     printf("root bin: %llu\n", static_cast<uint64_t>(m_root_bin));
 
-    ref_t _nil_cell[256];
-    bin_t _nil_bin[256];
-    ref_t * top_cell = _nil_cell;
-    bin_t * top_bin = _nil_bin;
-
-    *top_cell++ = 0;
-    *top_bin++ = m_root_bin;
-
-    while( top_cell != _nil_cell ) {
-        const ref_t cell = *(--top_cell);
-        const bin_t bin = *(--top_bin);
-
-        printf("Cell: %u, Bin: %llu, Layer: %u\n", cell, static_cast<uint64_t>(bin), static_cast<unsigned int>(bin.layer()));
-
-        if( is_ref_left(cell) ) {
-            const ref_t left_ref = m_cell[cell].m_left.m_ref;
-            printf(" left ref: %u, bin: %llu\n", left_ref, static_cast<uint64_t>(bin.left()));
-            *top_cell++ = left_ref;
-            *top_bin++ = bin.left();
-        } else {
-            const bitmap_t left_bitmap = m_cell[cell].m_left.m_bitmap;
-            printf(" left bitmap: %08x\n", left_bitmap);
-        }
-
-        if( is_ref_right(cell) ) {
-            const ref_t right_ref = m_cell[cell].m_right.m_ref;
-            printf(" right ref: %u, bin: %llu\n", right_ref, static_cast<uint64_t>(bin.right()));
-            *top_cell++ = right_ref;
-            *top_bin++ = bin.right();
-        } else {
-            const bitmap_t right_bitmap = m_cell[cell].m_right.m_bitmap;
-            printf(" right bitmap: %08x\n", right_bitmap);
-        }
-    }
+//    ref_t _nil_cell[256];
+//    bin_t _nil_bin[256];
+//    ref_t * top_cell = _nil_cell;
+//    bin_t * top_bin = _nil_bin;
+//
+//    *top_cell++ = 0;
+//    *top_bin++ = m_root_bin;
+//
+//    while( top_cell != _nil_cell ) {
+//        const ref_t cell = *(--top_cell);
+//        const bin_t bin = *(--top_bin);
+//
+//        printf("Cell: %u, Bin: %llu, Layer: %u\n", cell, static_cast<uint64_t>(bin), static_cast<unsigned int>(bin.layer()));
+//
+//        if( is_ref_left(cell) ) {
+//            const ref_t left_ref = m_cell[cell].m_left.m_ref;
+//            printf(" left ref: %u, bin: %llu\n", left_ref, static_cast<uint64_t>(bin.left()));
+//            *top_cell++ = left_ref;
+//            *top_bin++ = bin.left();
+//        } else {
+//            const bitmap_t left_bitmap = m_cell[cell].m_left.m_bitmap;
+//            printf(" left bitmap: %08x\n", left_bitmap);
+//        }
+//
+//        if( is_ref_right(cell) ) {
+//            const ref_t right_ref = m_cell[cell].m_right.m_ref;
+//            printf(" right ref: %u, bin: %llu\n", right_ref, static_cast<uint64_t>(bin.right()));
+//            *top_cell++ = right_ref;
+//            *top_bin++ = bin.right();
+//        } else {
+//            const bitmap_t right_bitmap = m_cell[cell].m_right.m_bitmap;
+//            printf(" right bitmap: %08x\n", right_bitmap);
+//        }
+//    }
 }

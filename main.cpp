@@ -7,38 +7,28 @@
 
 /* Binmap unit test */
 bool test0() {
-    uint32_t * bitmap = new uint32_t[RAND_MAX / 32];
+    const size_t N = 65536;
+
+    assert( N <= RAND_MAX );
+
+    uint32_t * bitmap = new uint32_t[ N / 32];
     binmap_t binmap;
 
-    unsigned int seed = 1262801300; //time(NULL);
+    unsigned int seed = time(NULL); // 1262801300;
     srandom( seed );
 
     /* Making random filling */
-//    fprintf(stderr, "Generation\n");
-//    for(int i = 0; i < RAND_MAX / 2; ++i) {
-//        const uint64_t n = static_cast<unsigned int>(random());
-//
-//        binmap.set(bin_t(2 * n));
-//        bitmap[n / 32] |= 1 << (n % 32);
-//    }
-
     fprintf(stderr, "Generation\n");
-    for(int i = 0; i < 540; ++i) {
-        const uint64_t n = static_cast<unsigned int>(random());
+    for(size_t i = 0; i < 6 * N; ++i) {
+        const size_t n = random() % N;
 
         binmap.set(bin_t(2 * n));
         bitmap[n / 32] |= 1 << (n % 32);
     }
 
-    const uint64_t n = static_cast<unsigned int>(random());
-
-    binmap.set(bin_t(2 * n));
-    bitmap[n / 32] |= 1 << (n % 32);
-//
-
     /* Checking results */
     fprintf(stderr, "Checking\n");
-    for(uint64_t n = 0; n < RAND_MAX; ++n) {
+    for(size_t n = 0; n < N; ++n) {
         const bool f1 = (FILL_FILLED == binmap.get(2 * n));
         const bool f2 = bitmap[n / 32] & (1 << (n % 32));
 
@@ -49,6 +39,8 @@ bool test0() {
     }
 
     fprintf(stderr, "Ok: seed = %u\n", seed);
+
+    binmap.status();
 
     return 0;
 }

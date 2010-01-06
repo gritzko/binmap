@@ -10,10 +10,6 @@
  */
 typedef uint32_t bitmap_t;
 
-const int BITMAP_BITS = 32;
-const int BITMAP_LAYER = 6;
-const int BITMAP_LAYER_BITS = 127;
-
 const bitmap_t BITMAP_EMPTY  = 0x00000000;
 const bitmap_t BITMAP_FILLED = 0xffffffff;
 
@@ -84,10 +80,10 @@ public:
     void set(bin_t bin);
 
 
-    /**
-     * Reset bins
-     */
-    void reset(bin_t bin);
+//    /**
+//     * Reset bins
+//     */
+//    void reset(bin_t bin);
 
 
     /**

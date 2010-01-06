@@ -6,6 +6,21 @@
 
 #include "binmap.h"
 
+/* Constants */
+
+static const uint64_t BITMAP_LAYER_BITS = 63;
+
+static const bitmap_t BITMAP[] = {
+    0x00000001, 0x00000003, 0x00000002, 0x0000000f, 0x00000004, 0x0000000c, 0x00000008, 0x000000ff,
+    0x00000010, 0x00000030, 0x00000020, 0x000000f0, 0x00000040, 0x000000c0, 0x00000080, 0x0000ffff,
+    0x00000100, 0x00000300, 0x00000200, 0x00000f00, 0x00000400, 0x00000c00, 0x00000800, 0x0000ff00,
+    0x00001000, 0x00003000, 0x00002000, 0x0000f000, 0x00004000, 0x0000c000, 0x00008000, 0xffffffff,
+    0x00010000, 0x00030000, 0x00020000, 0x000f0000, 0x00040000, 0x000c0000, 0x00080000, 0x00ff0000,
+    0x00100000, 0x00300000, 0x00200000, 0x00f00000, 0x00400000, 0x00c00000, 0x00800000, 0xffff0000,
+    0x01000000, 0x03000000, 0x02000000, 0x0f000000, 0x04000000, 0x0c000000, 0x08000000, 0xff000000,
+    0x10000000, 0x30000000, 0x20000000, 0xf0000000, 0x40000000, 0xc0000000, 0x80000000, /* special */ 0xffffffff /* special */
+};
+
 
 /* Utils */
 
@@ -118,7 +133,7 @@ void binmap_t::set_bitmap_right(ref_t cell) const {
 /**
  * Constructor
  */
-binmap_t::binmap_t() : m_root_bin(1) {
+binmap_t::binmap_t() : m_root_bin(63) {
     m_cell = NULL;
     m_halves_flags = NULL;
     m_blocks_number = 0;
@@ -346,13 +361,13 @@ fill_t binmap_t::get(bin_t bin) const {
     if( !m_root_bin.contains(bin) )
         return FILL_EMPTY;
 
-    /* Trace the nearest ancestor bin */
+    /* Trace the bin */
     ref_t cur_cell = ROOT_CELL;
     bin_t cur_bin = m_root_bin;
 
     for( ;; ) {
         if( bin == cur_bin )
-            return get_fill_type(m_cell[cur_cell].m_left.m_bitmap, m_cell[cur_cell].m_right.m_bitmap);
+            break;
 
         if( bin < cur_bin ) {
             if( is_bitmap_left(cur_cell) )
@@ -370,11 +385,30 @@ fill_t binmap_t::get(bin_t bin) const {
         }
     }
 
-    /* Check current bin bitmap */
-    // FIXME: if( bin.is_base() )
-    if( bin < cur_bin )
-        return get_fill_type(m_cell[cur_cell].m_left.m_bitmap);
-    return get_fill_type(m_cell[cur_cell].m_right.m_bitmap);
+    assert( cur_bin.layer_bits() > BITMAP_LAYER_BITS );
+
+    /* Proccess common case */
+    if( bin.layer_bits() > BITMAP_LAYER_BITS ) {
+        if( bin == cur_bin )
+            return get_fill_type(m_cell[cur_cell].m_left.m_bitmap, m_cell[cur_cell].m_right.m_bitmap);
+        if( bin < cur_bin )
+            return get_fill_type(m_cell[cur_cell].m_left.m_bitmap);
+        return get_fill_type(m_cell[cur_cell].m_right.m_bitmap);
+    }
+
+    /* Process low-layers case */
+    assert( bin != cur_bin );
+
+    const bitmap_t bm1 = BITMAP[ BITMAP_LAYER_BITS & static_cast<uint64_t>(bin) ];
+    const bitmap_t bm2 = (bin < cur_bin) ? m_cell[cur_cell].m_left.m_bitmap : m_cell[cur_cell].m_right.m_bitmap;
+
+    const bitmap_t bitmap = bm1 & bm2;
+
+    if( bitmap == BITMAP_EMPTY )
+        return FILL_EMPTY;
+    if( bitmap == bm1 )
+        return FILL_FILLED;
+    return FILL_MIXED;
 }
 
 
@@ -392,86 +426,77 @@ void binmap_t::set(bin_t bin) {
     while( !m_root_bin.contains(bin) )
         extend_root();
 
-    /* Process the special case */
-    if( m_root_bin == bin ) {
-        if( is_ref_left(ROOT_CELL) ) {
-            free_cell(m_cell[ROOT_CELL].m_left.m_ref);
-            set_bitmap_left(ROOT_CELL);
-        }
-
-        if( is_ref_right(ROOT_CELL) ) {
-            free_cell(m_cell[ROOT_CELL].m_right.m_ref);
-            set_bitmap_right(ROOT_CELL);
-        }
-
-        m_cell[ROOT_CELL].m_left.m_bitmap = BITMAP_FILLED;
-        m_cell[ROOT_CELL].m_right.m_bitmap = BITMAP_FILLED;
-
-        return;
-    }
-
-    /* Trace the parent bin */
-    const bin_t par_bin = bin.parent();
-
+    /* Store the trace history */
     ref_t _trace_cell[64];
     ref_t * trace_cell = _trace_cell;
-    *trace_cell++ = ROOT_CELL;
 
+    /* Process first stage -- do not touch existed tree */
     ref_t cur_cell = ROOT_CELL;
     bin_t cur_bin = m_root_bin;
 
-    /* Trace in existed tree */
-    while( cur_bin != par_bin ) {
-        if( par_bin < cur_bin ) {
+    *trace_cell++ = ROOT_CELL;
+    while( cur_bin != bin ) {
+        if( bin < cur_bin ) {
             if( is_bitmap_left(cur_cell) )
                 break;
             cur_cell = m_cell[cur_cell].m_left.m_ref;
             cur_bin = cur_bin.left();
-
         } else {
             if( is_bitmap_right(cur_cell) )
                 break;
-
             cur_cell = m_cell[cur_cell].m_right.m_ref;
             cur_bin = cur_bin.right();
         }
 
+
+        assert( trace_cell < _trace_cell + sizeof(_trace_cell) / sizeof(_trace_cell[0]) );
         *trace_cell++ = cur_cell;
     }
 
-    /* If the parent bin is found */
-    if( cur_bin == par_bin ) {
-        if( bin.is_left() ) {  // FIXME: optimization (bin < cur_bin)
-            if( is_ref_left(cur_cell) ) {
-                free_cell(m_cell[cur_cell].m_left.m_ref);
-                set_bitmap_left(cur_cell);
-            }
-            m_cell[cur_cell].m_left.m_bitmap = BITMAP_FILLED;
-        } else {
-            if( is_ref_right(cur_cell) ) {
-                free_cell(m_cell[cur_cell].m_right.m_ref);
-                set_bitmap_right(cur_cell);
-            }
-            m_cell[cur_cell].m_right.m_bitmap = BITMAP_FILLED;
+    assert( cur_bin.layer_bits() > BITMAP_LAYER_BITS );
+
+    /* If the bin cell was found */
+    if( cur_bin == bin ) {  /* special */
+        if( is_ref_left(cur_bin) ) {
+            free_cell(m_cell[cur_bin].m_left.m_ref);
+            set_bitmap_left(cur_bin);
         }
+        if( is_ref_right(cur_bin) ) {
+            free_cell(m_cell[cur_bin].m_right.m_ref);
+            set_bitmap_right(cur_bin);
+        }
+
+        m_cell[cur_bin].m_left.m_bitmap = BITMAP_FILLED;
+        m_cell[cur_bin].m_right.m_bitmap = BITMAP_FILLED;
 
         pack_cells(trace_cell - 1);
 
         return;
     }
 
-    /* Are we need to do anything? */
-    if( par_bin < cur_bin ) {  // FIXME: optimization (par_bin < cur_bin)
-        if( m_cell[cur_cell].m_left.m_bitmap == BITMAP_FILLED )
+    /* Process second stage */
+
+    /* Gets the bin bitmap type */
+    const int bin_bitmap_idx = static_cast<uint64_t>(bin) & BITMAP_LAYER_BITS;
+    const bitmap_t bin_bitmap = BITMAP[ bin_bitmap_idx ] /* special */;
+
+    /* Otherwise checking, are we need to do anything? */
+    if( bin < cur_bin ) {
+        if( (m_cell[cur_cell].m_left.m_bitmap & bin_bitmap) == bin_bitmap ) /* special */
             return;
     } else {
-        if( m_cell[cur_cell].m_right.m_bitmap == BITMAP_FILLED )
+        if( (m_cell[cur_cell].m_right.m_bitmap & bin_bitmap) == bin_bitmap ) /* special */
             return;
     }
 
-    /* Continue to trace with unpacking */
-    while( cur_bin != par_bin ) {
-        if( par_bin < cur_bin ) {
+    /* Get the pre-bin */
+    bin_t pre_bin = bin.parent();   /* OPTIMIZE IT! */
+    while( pre_bin.layer_bits() <= BITMAP_LAYER_BITS )
+        pre_bin = pre_bin.parent();
+
+    /* Continue to trace -- unpack the tree if needed */
+    while( cur_bin != pre_bin ) {
+        if( pre_bin < cur_bin ) {
             cur_cell = unpack_left_half(cur_cell);
             cur_bin = cur_bin.left();
         } else {
@@ -487,11 +512,16 @@ void binmap_t::set(bin_t bin) {
         *trace_cell++ = cur_cell;
     }
 
+    assert( cur_bin == pre_bin );
+    assert( cur_bin.layer_bits() > BITMAP_LAYER_BITS );
+
     /* Complete setting */
-    if( bin.is_left() )
-        m_cell[cur_cell].m_left.m_bitmap = BITMAP_FILLED;
+    if( bin < cur_bin )
+        m_cell[cur_cell].m_left.m_bitmap |= bin_bitmap; /* special */
     else
-        m_cell[cur_cell].m_right.m_bitmap = BITMAP_FILLED;
+        m_cell[cur_cell].m_right.m_bitmap |= bin_bitmap; /* special */
+
+    pack_cells(trace_cell - 1); /* FIXME: Some times this step is unnecessary */
 }
 
 
@@ -515,10 +545,13 @@ size_t binmap_t::cells_number() const {
  * Echo the binmap status to stdout
  */
 void binmap_t::status() const {
-    printf("bitmap: ");
-    for(int i = 0; i < 64; ++i)
-        printf("%d", get(bin_t(2 * i)));
-    printf("\n");
+    printf("bitmap:\n");
+
+    for(int i = 0; i < 16; ++i) {
+        for(int j = 0; j < 64; ++j)
+            printf("%d", get(bin_t(i * 64 + j)));
+        printf("\n");
+    }
 
     printf("cells number: %u\n", cells_number());
     printf("blocks number: %u\n", blocks_number());

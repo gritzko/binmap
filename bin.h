@@ -48,7 +48,7 @@
  *
  */
 
-struct bin_t {
+class bin_t {
 public:
 
     /**
@@ -69,10 +69,12 @@ public:
      */
     bin_t();
 
+
     /**
      * Constructor
      */
     bin_t(uint64_t val);
+
 
     /**
      * Gets the bin value

@@ -598,7 +598,7 @@ void binmap_t::status() const {
 //    ref_t * top_cell = _nil_cell;
 //    bin_t * top_bin = _nil_bin;
 //
-//    *top_cell++ = 0;
+//    *top_cell++ = ROOT_CELL;
 //    *top_bin++ = m_root_bin;
 //
 //    while( top_cell != _nil_cell ) {

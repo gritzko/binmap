@@ -162,13 +162,13 @@ public:
     /**
      * Checks wheither is bin is a left child
      */
-    bool is_left () const;
+    bool is_left() const;
 
 
     /**
      * Checks whether is bin is a left child
      */
-    bool is_right () const;
+    bool is_right() const;
 
 
     /**

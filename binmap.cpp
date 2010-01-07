@@ -12,7 +12,7 @@ const bitmap_t BITMAP_FILLED = static_cast<bitmap_t>(-1);
 
 static const size_t ROOT_CELL = 0;
 
-static const uint64_t BITMAP_LAYER_BITS = 16 * sizeof(bitmap_t) - 1;
+static const bin_t::uint_t BITMAP_LAYER_BITS = 2 * 8 * sizeof(bitmap_t) - 1;
 
 static const bitmap_t BITMAP[] = {
     static_cast<bitmap_t>(0x00000001), static_cast<bitmap_t>(0x00000003),
@@ -430,7 +430,7 @@ fill_t binmap_t::get(bin_t bin) const {
     /* Process low-layers case */
     assert( bin != cur_bin );
 
-    const bitmap_t bm1 = BITMAP[ BITMAP_LAYER_BITS & static_cast<uint64_t>(bin) ];
+    const bitmap_t bm1 = BITMAP[ BITMAP_LAYER_BITS & bin.toUInt() ];
     const bitmap_t bm2 = (bin < cur_bin) ? m_cell[cur_cell].m_left.m_bitmap : m_cell[cur_cell].m_right.m_bitmap;
 
     const bitmap_t bitmap = bm1 & bm2;
@@ -508,7 +508,7 @@ void binmap_t::set(bin_t bin) {
     /* Process second stage */
 
     /* Gets the bin bitmap type */
-    const int bin_bitmap_idx = static_cast<uint64_t>(bin) & BITMAP_LAYER_BITS;
+    const int bin_bitmap_idx = bin.toUInt() & BITMAP_LAYER_BITS;
     const bitmap_t bin_bitmap = BITMAP[ bin_bitmap_idx ] /* special */;
 
     /* Otherwise checking, are we need to do anything? */
@@ -576,16 +576,16 @@ size_t binmap_t::cells_number() const {
  * Echo the binmap status to stdout
  */
 void binmap_t::status() const {
-//    printf("bitmap:\n");
-//    for(int i = 0; i < 16; ++i) {
-//        for(int j = 0; j < 64; ++j)
-//            printf("%d", get(bin_t(i * 64 + j)));
-//        printf("\n");
-//    }
+    printf("bitmap:\n");
+    for(int i = 0; i < 16; ++i) {
+        for(int j = 0; j < 64; ++j)
+            printf("%d", get(bin_t(i * 64 + j)));
+        printf("\n");
+    }
 
     printf("size: %u bytes\n", sizeof(*this) + (16 * sizeof(cell_t) + sizeof(uint32_t)) * blocks_number());
     printf("cells number: %u (of %u)\n", cells_number(), 16 * blocks_number());
-    printf("root bin: %llu\n", static_cast<uint64_t>(m_root_bin));
+    printf("root bin: %llu\n", static_cast<unsigned long long>(m_root_bin.toUInt()));
 
 //    ref_t _nil_cell[256];
 //    bin_t _nil_bin[256];
@@ -599,11 +599,11 @@ void binmap_t::status() const {
 //        const ref_t cell = *(--top_cell);
 //        const bin_t bin = *(--top_bin);
 //
-//        printf("Cell: %u, Bin: %llu, Layer: %u\n", cell, static_cast<uint64_t>(bin), static_cast<unsigned int>(bin.layer()));
+//        printf("Cell: %u, Bin: %llu, Layer: %d\n", cell, static_cast<unsigned long long>(bin.toUInt()), bin.layer());
 //
 //        if( is_ref_left(cell) ) {
 //            const ref_t left_ref = m_cell[cell].m_left.m_ref;
-//            printf(" left ref: %u, bin: %llu\n", left_ref, static_cast<uint64_t>(bin.left()));
+//            printf(" left ref: %u, bin: %llu\n", left_ref, static_cast<unsigned long long>(bin.left().toUInt()));
 //            *top_cell++ = left_ref;
 //            *top_bin++ = bin.left();
 //        } else {
@@ -613,7 +613,7 @@ void binmap_t::status() const {
 //
 //        if( is_ref_right(cell) ) {
 //            const ref_t right_ref = m_cell[cell].m_right.m_ref;
-//            printf(" right ref: %u, bin: %llu\n", right_ref, static_cast<uint64_t>(bin.right()));
+//            printf(" right ref: %u, bin: %llu\n", right_ref, static_cast<unsigned long long>(bin.right().toUInt()));
 //            *top_cell++ = right_ref;
 //            *top_bin++ = bin.right();
 //        } else {

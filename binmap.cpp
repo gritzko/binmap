@@ -488,17 +488,17 @@ void binmap_t::set(bin_t bin) {
 
     /* If the bin cell was found */
     if( cur_bin == bin ) {  /* special */
-        if( is_ref_left(cur_bin) ) {
-            free_cell(m_cell[cur_bin].m_left.m_ref);
-            set_bitmap_left(cur_bin);
+        if( is_ref_left(cur_cell) ) {
+            free_cell(m_cell[cur_cell].m_left.m_ref);
+            set_bitmap_left(cur_cell);
         }
-        if( is_ref_right(cur_bin) ) {
-            free_cell(m_cell[cur_bin].m_right.m_ref);
-            set_bitmap_right(cur_bin);
+        if( is_ref_right(cur_cell) ) {
+            free_cell(m_cell[cur_cell].m_right.m_ref);
+            set_bitmap_right(cur_cell);
         }
 
-        m_cell[cur_bin].m_left.m_bitmap = BITMAP_FILLED;
-        m_cell[cur_bin].m_right.m_bitmap = BITMAP_FILLED;
+        m_cell[cur_cell].m_left.m_bitmap = BITMAP_FILLED;
+        m_cell[cur_cell].m_right.m_bitmap = BITMAP_FILLED;
 
         pack_cells(trace_cell - 1);
 

@@ -190,8 +190,10 @@ binmap_t::~binmap_t() {
 ref_t binmap_t::alloc_cell() {
     if( m_free_top == ROOT_CELL ) {
         /* Check for reference capacity */
-        if( static_cast<ref_t>(16 * m_blocks_number) < 16 * m_blocks_number )  /* FIXME: It should be constant */
+        if( static_cast<ref_t>(16 * m_blocks_number) < 16 * m_blocks_number ) {
+            fprintf(stderr, "Warning: binmap_t::alloc_cell: REFERENCE LIMIT ERROR\n");
             return ROOT_CELL /* REFERENCE LIMIT ERROR */;
+        }
 
         /* Extend the buffer */
         const size_t old_size = m_blocks_number;
@@ -201,8 +203,10 @@ ref_t binmap_t::alloc_cell() {
         const size_t size2 = new_size * sizeof(m_halves_flags[0]);
 
         /* Check for integer overflow */
-        if( size1 == 0 )
+        if( size1 == 0 ) {
+            fprintf(stderr, "Warning: binmap_t::alloc_cell: INTEGER OVERFLOW\n");
             return ROOT_CELL /* INTEGER OVERFLOW */;
+        }
 
         /* Reallocate memory */
         cell_t * const cell = static_cast<cell_t *>(realloc(m_cell, size1));
@@ -213,8 +217,10 @@ ref_t binmap_t::alloc_cell() {
             m_cell = cell;
         if( is_ref )
             m_halves_flags = is_ref;
-        if( cell == NULL || is_ref == NULL )
+        if( cell == NULL || is_ref == NULL ) {
+            fprintf(stderr, "Warning: binmap_t::alloc_cell: MEMORY ERROR\n");
             return ROOT_CELL /* MEMORY ERROR */;
+        }
 
         m_blocks_number = new_size;
 

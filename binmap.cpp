@@ -190,7 +190,7 @@ binmap_t::~binmap_t() {
 ref_t binmap_t::alloc_cell() {
     if( m_free_top == ROOT_CELL ) {
         /* Check for reference capacity */
-        if( static_cast<ref_t>(m_blocks_number) < m_blocks_number )  /* FIXME: It should be constant */
+        if( static_cast<ref_t>(16 * m_blocks_number) < 16 * m_blocks_number )  /* FIXME: It should be constant */
             return ROOT_CELL /* REFERENCE LIMIT ERROR */;
 
         /* Extend the buffer */

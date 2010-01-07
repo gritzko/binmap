@@ -1,5 +1,3 @@
-#include "bin.h"
-#include "binmap.h"
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
@@ -7,25 +5,26 @@
 #include <cctype>
 #include <ctime>
 
+#include "bin.h"
+#include "binmap.h"
+#include "cRandom/crandom.h"
+
 
 /* Binmap unit test */
 bool test0() {
+    const int seed = time(NULL);
+    struct cRandom * const crandom = dSFMTRandomNewBySeed(seed);
+
     const size_t N = 32 * 65536;
-
-    assert( N <= RAND_MAX );
-
-    uint32_t * bitmap = new uint32_t[ N / 32];
-    binmap_t binmap;
-
+    uint32_t * const bitmap = new uint32_t[ N / 32];
     memset(bitmap, 0, N / 8);
 
-    unsigned int seed = time(NULL);
-    srandom( seed );
+    binmap_t binmap;
 
     /* Making random filling */
     fprintf(stderr, "Generation\n");
     for(size_t i = 0; i < 3 * N; ++i) {
-        const size_t n = random() % N;
+        const int n = equilikely(crandom, 0, N - 1);
 
         binmap.set(bin_t(2 * n));
         bitmap[n / 32] |= 1 << (n % 32);

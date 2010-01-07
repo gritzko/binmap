@@ -1,0 +1,3 @@
+[submodule "cRandom"]
+	path = cRandom
+	url = git://github.com/the-zett/cRandom.git

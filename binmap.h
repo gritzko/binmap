@@ -28,6 +28,8 @@ typedef uint32_t ref_t;
 typedef enum { FILL_EMPTY, FILL_MIXED, FILL_FILLED } fill_t;
 
 
+#pragma pack(push, 1)
+
 /**
  * Structure of cell halves
  */
@@ -44,6 +46,8 @@ typedef struct {
  */
 typedef union {
     struct {
+		bool m_is_left_ref : 1;
+		bool m_is_right_ref : 1;
         half_t m_left;
         half_t m_right;
     };
@@ -51,6 +55,7 @@ typedef union {
 } cell_t;
 
 
+#pragma pack(pop)
 
 /**
  * Binmap class
@@ -122,70 +127,6 @@ private:
 
 
     /**
-     * Get postion of the left half flag
-     */
-    static inline size_t left_n(ref_t cell);
-
-    /**
-     * Get mask of the left half flag
-     */
-    static inline size_t left_m(ref_t cell);
-
-    /**
-     * Get position of the right half flag
-     */
-    static inline uint32_t right_n(ref_t cell);
-
-    /**
-     * Get position of the right half mask
-     */
-    static inline uint32_t right_m(ref_t cell);
-
-
-    /**
-     * Check type of the left half
-     */
-    bool is_ref_left(ref_t cell) const;
-
-    /**
-     * Check type of the right half
-     */
-    bool is_ref_right(ref_t cell) const;
-
-    /**
-     * Check type of the left half
-     */
-    bool is_bitmap_left(ref_t cell) const;
-
-    /**
-     * Check type of the right half
-     */
-    bool is_bitmap_right(ref_t cell) const;
-
-
-    /**
-     * Set type of the left half
-     */
-    void set_ref_left(ref_t cell) const;
-
-    /**
-     * Set type of the left half
-     */
-    void set_ref_right(ref_t cell) const;
-
-    /**
-     * Set type of the left half
-     */
-    void set_bitmap_left(ref_t cell) const;
-
-    /**
-     * Set type of the left half
-     */
-    void set_bitmap_right(ref_t cell) const;
-
-
-
-    /**
      * Extend root
      */
     void extend_root();
@@ -213,11 +154,6 @@ private:
      * Pointer to the list of blocks
      */
     cell_t * m_cell;
-
-    /**
-     * List of bit-flags corresponded to halves;
-     */
-    uint32_t * m_halves_flags;
 
     /**
      * Number of allocated blocks (16 * cell)

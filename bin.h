@@ -365,7 +365,7 @@ inline bool bin_t::is_left() const {
  * Checks wheither is bin is a left child
  */
 inline bool bin_t::is_right() const {
-    return m_v & (layer_bits() + 1);
+    return !is_left();
 }
 
 

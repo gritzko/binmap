@@ -1,8 +1,9 @@
-#include <cerrno>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include <cassert>
 #include <cctype>
+#include <cerrno>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
 #include <ctime>
 
 #include "bin.h"
@@ -12,7 +13,7 @@
 
 /* Binmap unit test */
 bool test0() {
-    const int seed = time(NULL);
+    const int seed = static_cast<int>(time(NULL));
     struct cRandom * const crandom = dSFMTRandomNewBySeed(seed);
 
     const size_t N = 32 * 65536;
@@ -33,8 +34,8 @@ bool test0() {
     /* Checking results */
     fprintf(stderr, "Checking\n");
     for(size_t n = 0; n < N; ++n) {
-        const bool f1 = (FILL_FILLED == binmap.get(bin_t(2 * n)));
-        const bool f2 = bitmap[n / 32] & (1 << (n % 32));
+        const bool f1 = (FILL_FILLED == binmap.get(bin_t(static_cast<bin_t::uint_t>(2 * n))));
+        const bool f2 = (0 != (bitmap[n / 32] & (1 << (n % 32))));
 
         if( f1 != f2 ) {
             fprintf(stderr, "Error: seed = %u\n", seed);
@@ -112,8 +113,14 @@ void test1() {
 }
 
 int main() {
-//    test0();
-    test1();
+    const clock_t clock_start = clock();
+
+    test0();
+//  test1();
+
+    cont clock_t clock_end = clock();
+
+    printf("Time: %.3f\n", static_cast<double>(clock_end - clock_start) / CLOCKS_PER_SEC);
 
     return 0;
 }

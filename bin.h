@@ -1,13 +1,6 @@
 #ifndef BIN64_H
 #define BIN64_H
 
-#include <assert.h>
-#ifdef _MSC_VER
-#  include "compat/stdint.h"
-#else
-#  include <stdint.h>
-#endif
-
 
 /**
  * Numbering for (aligned) logarithmical bins.

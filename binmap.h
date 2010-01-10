@@ -4,6 +4,12 @@
 #include <cstddef>
 #include "bin.h"
 
+#ifndef _MSC_VER
+#  include <stdint.h>
+#else
+typedef unsigned __int32 uint32_t;
+#endif
+
 
 /**
  * Type of bitmap

@@ -307,7 +307,7 @@ inline bin_t bin_t::parent() const {
  * Gets the left child
  */
 inline bin_t bin_t::left() const {
-    const uint_t t = (layer_bits() + 1) >> 2;
+    const uint_t t = ((layer_bits() >> 1) + 1) >> 1;
 
 //    if (t == 0)
 //        return NONE;
@@ -320,7 +320,7 @@ inline bin_t bin_t::left() const {
  * Gets the right child
  */
 inline bin_t bin_t::right() const {
-    const uint_t t = (layer_bits() + 1) >> 2;
+    const uint_t t = ((layer_bits() >> 1) + 1) >> 1;
 
 //    if (t == 0)
 //        return NONE;

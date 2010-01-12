@@ -139,15 +139,15 @@ ref_t binmap_t::alloc_cell() {
     }
 
     /* Pop an element from the free cell list */
-    const ref_t cell = m_free_top;
-    m_free_top = m_cell[ m_free_top ].m_free_next;
+    const ref_t ref = m_free_top;
+    m_free_top = m_cell[ ref ].m_free_next;
 
     /* Clean it */
-    memset(&m_cell[ cell ], 0, sizeof(m_cell[0]));
+    memset(&m_cell[ref], 0, sizeof(m_cell[ref]));
 
     ++m_cells_number;
 
-    return cell;
+    return ref;
 }
 
 
@@ -248,6 +248,8 @@ void binmap_t::pack_cells(ref_t * trace_ref) {
     ref_t ref = *trace_ref--;
     if( ref == ROOT_REF )
         return;
+
+    assert( !m_cell[ref].m_is_left_ref && !m_cell[ref].m_is_right_ref );
 
     if( m_cell[ref].m_left.m_bitmap != m_cell[ref].m_right.m_bitmap )
         return;

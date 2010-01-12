@@ -118,7 +118,7 @@ int main() {
     test0();
 //  test1();
 
-    cont clock_t clock_end = clock();
+    const clock_t clock_end = clock();
 
     printf("Time: %.3f\n", static_cast<double>(clock_end - clock_start) / CLOCKS_PER_SEC);
 

@@ -16,7 +16,7 @@ bool test0() {
     const int seed = static_cast<int>(time(NULL));
     struct cRandom * const crandom = dSFMTRandomNewBySeed(seed);
 
-    const size_t N = 32 * 65536;
+    const size_t N = 128 * 65536;
     uint32_t * const bitmap = new uint32_t[ N / 32];
     memset(bitmap, 0, N / 8);
 
@@ -24,7 +24,7 @@ bool test0() {
 
     /* Making random filling */
     fprintf(stderr, "Generation\n");
-    for(size_t i = 0; i < 3 * N; ++i) {
+    for(size_t i = 0; i < 5 * N; ++i) {
         const int n = equilikely(crandom, 0, N - 1);
 
         binmap.set(bin_t(2 * n));

@@ -308,13 +308,13 @@ fill_t binmap_t::get(bin_t bin) const {
         if( bin < cur_bin ) {
             if( m_cell[cur_ref].m_is_left_ref ) {
                 cur_ref = m_cell[cur_ref].m_left.m_ref;
-                cur_bin = cur_bin.left();
+                cur_bin.to_left();
             } else
                 break;
         } else {
             if( m_cell[cur_ref].m_is_right_ref ) {
                 cur_ref = m_cell[cur_ref].m_right.m_ref;
-                cur_bin = cur_bin.right();
+                cur_bin.to_right();
             } else
                 break;
         }
@@ -374,13 +374,13 @@ void binmap_t::set(bin_t bin) {
         if( bin < cur_bin ) {
             if( m_cell[cur_ref].m_is_left_ref ) {
                 cur_ref = m_cell[cur_ref].m_left.m_ref;
-                cur_bin = cur_bin.left();
+                cur_bin.to_left();
             } else
                 break;
         } else {
             if( m_cell[cur_ref].m_is_right_ref ) {
                cur_ref = m_cell[cur_ref].m_right.m_ref;
-               cur_bin = cur_bin.right();
+               cur_bin.to_right();
             } else
                 break;
         }
@@ -433,10 +433,10 @@ void binmap_t::set(bin_t bin) {
     while( cur_bin != pre_bin ) {
         if( pre_bin < cur_bin ) {
             cur_ref = unpack_left_half(cur_ref);
-            cur_bin = cur_bin.left();
+            cur_bin.to_left();
         } else {
             cur_ref = unpack_right_half(cur_ref);
-            cur_bin = cur_bin.right();
+            cur_bin.to_right();
         }
 
         if( cur_ref == ROOT_REF ) {

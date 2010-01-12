@@ -171,6 +171,24 @@ public:
 
 
     /**
+     * Sets this object to the parent
+     */
+    bin_t & to_parent();
+
+
+    /**
+     * Sets this object to the left child
+     */
+    bin_t & to_left();
+
+
+    /**
+     * Sets this object to the right child
+     */
+    bin_t & to_right();
+
+
+    /**
      * Gets the parent bin
      */
     bin_t parent() const;
@@ -289,6 +307,49 @@ inline bool bin_t::operator < (const bin_t & bin) const {
  */
 inline bool bin_t::operator > (const bin_t & bin) const {
     return m_v > bin.m_v;
+}
+
+
+/**
+ * Sets this object to the parent
+ */
+inline bin_t & bin_t::to_parent() {
+    const uint_t lbs = layer_bits();
+    const uint_t nlbs = ~(lbs + 1);
+
+    m_v = (m_v | lbs) & nlbs;
+
+    return *this;
+}
+
+
+/**
+ * Sets this object to the left child
+ */
+inline bin_t & bin_t::to_left() {
+    const uint_t t = ((layer_bits() >> 1) + 1) >> 1;
+
+//    if (t == 0)
+//        return NONE;
+
+    m_v ^= t;
+
+    return *this;
+}
+
+
+/**
+* Sets this object to the right child
+*/
+inline bin_t & bin_t::to_right() {
+    const uint_t t = ((layer_bits() >> 1) + 1) >> 1;
+
+//    if (t == 0)
+//        return NONE;
+
+    m_v += t;
+
+    return *this;
 }
 
 

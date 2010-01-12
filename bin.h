@@ -315,7 +315,7 @@ inline bool bin_t::operator > (const bin_t & bin) const {
  */
 inline bin_t & bin_t::to_parent() {
     const uint_t lbs = layer_bits();
-    const uint_t nlbs = ~(lbs + 1);
+    const uint_t nlbs = -2 - lbs;
 
     m_v = (m_v | lbs) & nlbs;
 
@@ -327,7 +327,11 @@ inline bin_t & bin_t::to_parent() {
  * Sets this object to the left child
  */
 inline bin_t & bin_t::to_left() {
-    const uint_t t = ((layer_bits() >> 1) + 1) >> 1;
+    register uint_t t;
+
+    t = m_v + 1;
+    t &= -t;
+    t >>= 1;
 
 //    if (t == 0)
 //        return NONE;
@@ -342,7 +346,11 @@ inline bin_t & bin_t::to_left() {
 * Sets this object to the right child
 */
 inline bin_t & bin_t::to_right() {
-    const uint_t t = ((layer_bits() >> 1) + 1) >> 1;
+    register uint_t t;
+
+    t = m_v + 1;
+    t &= -t;
+    t >>= 1;
 
 //    if (t == 0)
 //        return NONE;
@@ -358,7 +366,7 @@ inline bin_t & bin_t::to_right() {
  */
 inline bin_t bin_t::parent() const {
     const uint_t lbs = layer_bits();
-    const uint_t nlbs = ~(lbs + 1);
+    const uint_t nlbs = -2 - lbs;
 
     return bin_t((m_v | lbs) & nlbs);
 }
@@ -368,7 +376,11 @@ inline bin_t bin_t::parent() const {
  * Gets the left child
  */
 inline bin_t bin_t::left() const {
-    const uint_t t = ((layer_bits() >> 1) + 1) >> 1;
+    register uint_t t;
+
+    t = m_v + 1;
+    t &= -t;
+    t >>= 1;
 
 //    if (t == 0)
 //        return NONE;
@@ -381,7 +393,11 @@ inline bin_t bin_t::left() const {
  * Gets the right child
  */
 inline bin_t bin_t::right() const {
-    const uint_t t = ((layer_bits() >> 1) + 1) >> 1;
+    register uint_t t;
+
+    t = m_v + 1;
+    t &= -t;
+    t >>= 1;
 
 //    if (t == 0)
 //        return NONE;

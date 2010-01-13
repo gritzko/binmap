@@ -18,11 +18,16 @@ const bin_t bin_t::ALL(static_cast<bin_t::uint_t>(0xffffffffffffffffULL) >> 1);
  * Gets the layer value of a bin
  */
 int bin_t::layer() const {
+    if( is_none() )
+        return -1;
+
     int r = 0;
 
-    uint_t tail = (layer_bits() + 1) >> 1;
+    register uint_t tail;
+    tail = m_v + 1;
+    tail = tail & (-tail);
 
-    if( tail > 0xffffffffU ) {
+    if( tail > 0x80000000U ) {
         r = 32;
         tail >>= 16;    // FIXME: hide warning
         tail >>= 16;

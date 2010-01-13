@@ -310,6 +310,35 @@ TEST(binmap_test, set_reset_get) {
 }
 
 
+TEST(binmap_test, find_empty) {
+    const size_t N = 33 * 65536;
+    binmap_t binmap;
+
+    /* Making random filling */
+    for(size_t i = 0; i < 3 * N; ++i) {
+        const int n = equilikely(crandom, 0, N - 1);
+
+        binmap.set(bin_t(2 * n));
+    }
+
+    /* Checking results */
+    size_t cells_number = binmap.cells_number();
+
+    while( binmap.cells_number() != 1 ) {
+        const bin_t bin = binmap.find_empty();
+
+        EXPECT_FALSE( binmap.get(bin) );
+
+        binmap.set(bin);
+
+        if ( binmap.cells_number() < cells_number ) {
+            cells_number = binmap.cells_number();
+        } else {
+            EXPECT_LE( binmap.cells_number(), cells_number + 64 );
+        }
+    }
+}
+
 
 int main(int argc, char ** argv) {
     testing::InitGoogleTest(&argc, argv);

@@ -50,12 +50,64 @@ static const bitmap_t BITMAP[] = {
 };
 
 
+static const uint32_t BITMAP_TO_BIN[] = {
+    -1,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
+     8,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
+    10,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
+     9,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
+    12,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
+     8,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
+    10,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
+     9,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
+    14,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
+     8,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
+    10,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
+     9,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
+    13,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
+     8,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
+    10,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
+    11,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  7
+};
+
+
+/**
+ * Get the leftmost bin that coresponded to bitmap (the bin is filled in bitmap)
+ */
+static inline bin_t::uint_t trace_bitmap(register bitmap_t b) {
+    assert( sizeof(bitmap_t) <= 4 );
+    assert( b != BITMAP_EMPTY );
+
+    if( b & 1 ) {
+        if( b == static_cast<bitmap_t>(0xffffffff) )
+            return 31;
+        if( b == static_cast<bitmap_t>(0xffff) )
+            return 15;
+        return BITMAP_TO_BIN[b & 0xff];
+    }
+
+    bin_t::uint_t v = 0;
+    if( !(b & 0xffff) ) {
+        b >>= 16;
+        v = 32;
+    }
+
+    if( b == static_cast<bitmap_t>(0xffff) )
+        return v + 15;
+
+    if( 0 == (b & 0xff) )
+        return v + 16 + BITMAP_TO_BIN[(b >> 8) & 0xff];
+    return v + BITMAP_TO_BIN[b & 0xff];
+}
+
+
 /* Methods */
 
 /**
  * Constructor
  */
 binmap_t::binmap_t() : m_root_bin(63) {
+    assert( sizeof(bitmap_t) <= 4 );
+
     m_cell = NULL;
     m_blocks_number = 0;
     m_cells_number = 0;
@@ -328,6 +380,47 @@ bool binmap_t::get(bin_t bin) const {
     const bitmap_t bm2 = (bin < cur_bin) ? m_cell[cur_ref].m_left.m_bitmap : m_cell[cur_ref].m_right.m_bitmap;
 
     return (bm1 & bm2) == bm1;
+}
+
+
+/**
+ * Find first empty bin
+ */
+bin_t binmap_t::find_empty() const {
+    /* Trace the bin */
+    bitmap_t bitmap = BITMAP_FILLED;
+
+    ref_t cur_ref = ROOT_REF;
+    bin_t cur_bin = m_root_bin;
+
+//    if( m_cell[cur_ref].m_left.m_bitmap == BITMAP_EMPTY && m_cell[cur_ref].m_right.m_bitmap == BITMAP_EMPTY )
+//        return bin_t::ALL;
+
+    for( ;; ) {
+        if( m_cell[cur_ref].m_is_left_ref ) {
+            cur_ref = m_cell[cur_ref].m_left.m_ref;
+            cur_bin.to_left();
+        } else if( m_cell[cur_ref].m_left.m_bitmap != BITMAP_FILLED ) {
+            bitmap = m_cell[cur_ref].m_left.m_bitmap;
+            cur_bin.to_left();
+            break;
+        } else if( m_cell[cur_ref].m_is_right_ref ) {
+            cur_ref = m_cell[cur_ref].m_right.m_ref;
+            cur_bin.to_right();
+        } else {
+            bitmap = m_cell[cur_ref].m_right.m_bitmap;
+            cur_bin.to_right();
+            break;
+        }
+    }
+
+    if( bitmap == BITMAP_FILLED ) {
+        if( m_root_bin.is_all() )
+            return bin_t::NONE;
+        return m_root_bin.sibling();
+    }
+
+    return bin_t(cur_bin.base_left().toUInt() + trace_bitmap(~bitmap));
 }
 
 

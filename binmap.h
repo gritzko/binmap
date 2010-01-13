@@ -89,6 +89,12 @@ public:
 
 
     /**
+     * Find first empty bin
+     */
+    bin_t find_empty() const;
+
+
+    /**
      * Get blocks number
      */
     size_t blocks_number() const;
@@ -169,6 +175,12 @@ private:
      * The root bin
      */
     bin_t m_root_bin;
+
+
+    /**
+     * Copy constructor
+     */
+    binmap_t(const binmap_t &); /* undefined */
 };
 
 #endif // BINMAP_H

@@ -1,13 +1,14 @@
 # -------------------------------------------------
 # Project created by QtCreator 2010-01-06T16:03:32
 # -------------------------------------------------
-QT -= core \
-    gui
+QT =
 TARGET = binmap
 CONFIG += console
 CONFIG -= app_bundle
+LIBS += -lgtest
+
 TEMPLATE = app
-SOURCES += main.cpp \
+SOURCES += unit-tests.cpp \
     bin.cpp \
     binmap.cpp \
     cRandom/crandom.c \

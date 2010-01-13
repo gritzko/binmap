@@ -88,10 +88,10 @@ public:
     void set(bin_t bin);
 
 
-//    /**
-//     * Reset bins
-//     */
-//    void reset(bin_t bin);
+    /**
+     * Reset bins
+     */
+    void reset(bin_t bin);
 
 
     /**

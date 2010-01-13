@@ -277,6 +277,40 @@ TEST(binmap_test, set_get) {
 }
 
 
+TEST(binmap_test, set_reset_get) {
+    const size_t N = 33 * 65536;
+
+    uint32_t * const bitmap = new uint32_t[ N / 32];
+    memset(bitmap, 0, N / 8);
+
+    binmap_t binmap;
+
+    /* Making random filling */
+    for(size_t i = 0; i < 5 * N; ++i) {
+        const int n = equilikely(crandom, 0, N - 1);
+
+        if( bernoulli(crandom, 0.5) ) {
+            binmap.set(bin_t(2 * n));
+            bitmap[n / 32] |= (1 << (n % 32));
+        } else {
+            binmap.reset(bin_t(2 * n));
+            bitmap[n / 32] &= ~(1 << (n % 32));
+        }
+    }
+
+    /* Checking results */
+    for(size_t n = 0; n < N; ++n) {
+        const bool f1 = (FILL_FILLED == binmap.get(bin_t(static_cast<bin_t::uint_t>(2 * n))));
+        const bool f2 = (0 != (bitmap[n / 32] & (1 << (n % 32))));
+
+        EXPECT_EQ( f2, f1 );
+    }
+
+    delete [] bitmap;
+}
+
+
+
 int main(int argc, char ** argv) {
     testing::InitGoogleTest(&argc, argv);
 

@@ -469,6 +469,119 @@ void binmap_t::set(bin_t bin) {
 
 
 /**
+ * Resets bins
+ *
+ * @param bin
+ *             the bin
+ */
+void binmap_t::reset(bin_t bin) {
+    if( bin.is_none() )
+        return;
+
+    /* Extending binmap if needed */
+    while( !m_root_bin.contains(bin) )
+        extend_root();
+
+    /* Store the trace history */
+    ref_t _trace_ref[64];
+    ref_t * trace_ref = _trace_ref;
+
+    /* Process first stage -- do not touch existed tree */
+    ref_t cur_ref = ROOT_REF;
+    bin_t cur_bin = m_root_bin;
+
+    *trace_ref++ = ROOT_REF;
+    while( cur_bin != bin ) {
+        if( bin < cur_bin ) {
+            if( m_cell[cur_ref].m_is_left_ref ) {
+                cur_ref = m_cell[cur_ref].m_left.m_ref;
+                cur_bin.to_left();
+            } else
+                break;
+        } else {
+            if( m_cell[cur_ref].m_is_right_ref ) {
+               cur_ref = m_cell[cur_ref].m_right.m_ref;
+               cur_bin.to_right();
+            } else
+                break;
+        }
+
+        assert( trace_ref < _trace_ref + sizeof(_trace_ref) / sizeof(_trace_ref[0]) );
+        *trace_ref++ = cur_ref;
+    }
+
+    assert( cur_bin.layer_bits() > BITMAP_LAYER_BITS );
+
+    /* If the bin cell was found */
+    if( cur_bin == bin ) {  /* special */
+        if( m_cell[cur_ref].m_is_left_ref )
+            free_cell(m_cell[cur_ref].m_left.m_ref);
+        if( m_cell[cur_ref].m_is_right_ref )
+            free_cell(m_cell[cur_ref].m_right.m_ref);
+
+        m_cell[cur_ref].m_is_left_ref = false;
+        m_cell[cur_ref].m_is_right_ref = false;
+
+        m_cell[cur_ref].m_left.m_bitmap = BITMAP_EMPTY;
+        m_cell[cur_ref].m_right.m_bitmap = BITMAP_EMPTY;
+
+        pack_cells(trace_ref - 1);
+
+        return;
+    }
+
+    /* Process second stage */
+
+    /* Gets the bin bitmap type */
+    const int bin_bitmap_idx = bin.toUInt() & BITMAP_LAYER_BITS;
+    const bitmap_t bin_bitmap = BITMAP[ bin_bitmap_idx ] /* special */;
+
+    /* Otherwise checking, are we need to do anything? */
+    if( bin < cur_bin ) {
+        if( (m_cell[cur_ref].m_left.m_bitmap & bin_bitmap) == 0 ) /* special */
+            return;
+    } else {
+        if( (m_cell[cur_ref].m_right.m_bitmap & bin_bitmap) == 0 ) /* special */
+            return;
+    }
+
+    /* Get the pre-bin */
+    bin_t pre_bin = bin.parent();   /* OPTIMIZE IT! */
+    while( pre_bin.layer_bits() <= BITMAP_LAYER_BITS )
+        pre_bin = pre_bin.parent();
+
+    /* Continue to trace -- unpack the tree if needed */
+    while( cur_bin != pre_bin ) {
+        if( pre_bin < cur_bin ) {
+            cur_ref = unpack_left_half(cur_ref);
+            cur_bin.to_left();
+        } else {
+            cur_ref = unpack_right_half(cur_ref);
+            cur_bin.to_right();
+        }
+
+        if( cur_ref == ROOT_REF ) {
+            pack_cells(trace_ref - 1);
+            return; /* UNPACK HALF ERROR */
+        }
+
+        *trace_ref++ = cur_ref;
+    }
+
+    assert( cur_bin == pre_bin );
+    assert( cur_bin.layer_bits() > BITMAP_LAYER_BITS );
+
+    /* Complete setting */
+    if( bin < cur_bin )
+        m_cell[cur_ref].m_left.m_bitmap &= ~bin_bitmap; /* special */
+    else
+        m_cell[cur_ref].m_right.m_bitmap &= ~bin_bitmap; /* special */
+
+    pack_cells(trace_ref - 1); /* FIXME: Some times this step is unnecessary */
+}
+
+
+/**
  * Get blocks number
  */
 size_t binmap_t::blocks_number() const {

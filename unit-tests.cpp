@@ -267,7 +267,7 @@ TEST(binmap_test, set_get) {
 
     /* Checking results */
     for(size_t n = 0; n < N; ++n) {
-        const bool f1 = (FILL_FILLED == binmap.get(bin_t(static_cast<bin_t::uint_t>(2 * n))));
+        const bool f1 = binmap.get(bin_t(static_cast<bin_t::uint_t>(2 * n)));
         const bool f2 = (0 != (bitmap[n / 32] & (1 << (n % 32))));
 
         EXPECT_EQ( f2, f1 );
@@ -300,7 +300,7 @@ TEST(binmap_test, set_reset_get) {
 
     /* Checking results */
     for(size_t n = 0; n < N; ++n) {
-        const bool f1 = (FILL_FILLED == binmap.get(bin_t(static_cast<bin_t::uint_t>(2 * n))));
+        const bool f1 = binmap.get(bin_t(static_cast<bin_t::uint_t>(2 * n)));
         const bool f2 = (0 != (bitmap[n / 32] & (1 << (n % 32))));
 
         EXPECT_EQ( f2, f1 );

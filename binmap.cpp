@@ -50,24 +50,6 @@ static const bitmap_t BITMAP[] = {
 };
 
 
-/* Utils */
-
-static inline fill_t get_fill_type(bitmap_t bitmap) {
-    if( bitmap == BITMAP_EMPTY )
-        return FILL_EMPTY;
-    if( bitmap == BITMAP_FILLED )
-        return FILL_FILLED;
-    return FILL_MIXED;
-}
-
-
-static inline fill_t get_fill_type(bitmap_t left_bitmap, bitmap_t right_bitmap) {
-    if( left_bitmap == right_bitmap )
-        return get_fill_type(left_bitmap);
-    return FILL_MIXED;
-}
-
-
 /* Methods */
 
 /**
@@ -301,9 +283,9 @@ void binmap_t::pack_cells(ref_t * trace_ref) {
  *             the bin
  * @return fill type of the bin
  */
-fill_t binmap_t::get(bin_t bin) const {
+bool binmap_t::get(bin_t bin) const {
     if( !m_root_bin.contains(bin) )
-        return FILL_EMPTY;
+        return false;
 
     /* Trace the bin */
     ref_t cur_ref = ROOT_REF;
@@ -333,10 +315,10 @@ fill_t binmap_t::get(bin_t bin) const {
     /* Proccess common case */
     if( bin.layer_bits() > BITMAP_LAYER_BITS ) {
         if( bin == cur_bin )
-            return get_fill_type(m_cell[cur_ref].m_left.m_bitmap, m_cell[cur_ref].m_right.m_bitmap);
+            return m_cell[cur_ref].m_left.m_bitmap == BITMAP_FILLED && m_cell[cur_ref].m_right.m_bitmap == BITMAP_FILLED;
         if( bin < cur_bin )
-            return get_fill_type(m_cell[cur_ref].m_left.m_bitmap);
-        return get_fill_type(m_cell[cur_ref].m_right.m_bitmap);
+            return m_cell[cur_ref].m_left.m_bitmap == BITMAP_FILLED;
+        return m_cell[cur_ref].m_right.m_bitmap == BITMAP_FILLED;
     }
 
     /* Process low-layers case */
@@ -345,13 +327,7 @@ fill_t binmap_t::get(bin_t bin) const {
     const bitmap_t bm1 = BITMAP[ BITMAP_LAYER_BITS & bin.toUInt() ];
     const bitmap_t bm2 = (bin < cur_bin) ? m_cell[cur_ref].m_left.m_bitmap : m_cell[cur_ref].m_right.m_bitmap;
 
-    const bitmap_t bitmap = bm1 & bm2;
-
-    if( bitmap == BITMAP_EMPTY )
-        return FILL_EMPTY;
-    if( bitmap == bm1 )
-        return FILL_FILLED;
-    return FILL_MIXED;
+    return (bm1 & bm2) == bm1;
 }
 
 

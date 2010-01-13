@@ -22,12 +22,6 @@ typedef uint32_t bitmap_t;
 typedef uint32_t ref_t;
 
 
-/**
- * Type of filling
- */
-typedef enum { FILL_EMPTY, FILL_MIXED, FILL_FILLED } fill_t;
-
-
 #pragma pack(push, 1)
 
 /**
@@ -79,7 +73,7 @@ public:
     /**
      * Get bins
      */
-    fill_t get(bin_t bin) const;
+    bool get(bin_t bin) const;
 
 
     /**

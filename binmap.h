@@ -46,10 +46,11 @@ typedef struct {
  */
 typedef union {
     struct {
-		bool m_is_left_ref : 1;
-		bool m_is_right_ref : 1;
         half_t m_left;
         half_t m_right;
+        bool m_is_left_ref : 1;
+        bool m_is_right_ref : 1;
+        bool m_is_free : 1;
     };
     ref_t m_free_next;
 } cell_t;

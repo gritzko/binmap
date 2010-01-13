@@ -131,15 +131,21 @@ ref_t binmap_t::alloc_cell() {
         const size_t stop_idx = 16 * old_size - 1;
         size_t idx = 16 * new_size - 1;
 
-        m_cell[ idx-- ].m_free_next = m_free_top;
-        for(; idx != stop_idx; --idx)
+        m_cell[ idx ].m_is_free = true;
+        m_cell[ idx ].m_free_next = m_free_top;
+
+        for(--idx; idx != stop_idx; --idx) {
+            m_cell[ idx ].m_is_free = true;
             m_cell[ idx ].m_free_next = static_cast<ref_t>(idx + 1);
+        }
 
         m_free_top = static_cast<ref_t>(16 * old_size);
     }
 
     /* Pop an element from the free cell list */
     const ref_t ref = m_free_top;
+    assert( m_cell[ref].m_is_free );
+
     m_free_top = m_cell[ ref ].m_free_next;
 
     /* Clean it */
@@ -156,12 +162,14 @@ ref_t binmap_t::alloc_cell() {
  */
 void binmap_t::free_cell(ref_t ref) {
     assert( ref > 0 );
+    assert( !m_cell[ref].m_is_free );
 
     if( m_cell[ref].m_is_left_ref )
         free_cell(m_cell[ref].m_left.m_ref);
     if( m_cell[ref].m_is_right_ref )
         free_cell(m_cell[ref].m_right.m_ref);
 
+    m_cell[ref].m_is_free = true;
     m_cell[ref].m_free_next = m_free_top;
     m_free_top = ref;
 

@@ -438,6 +438,9 @@ bin_t binmap_t::find_empty() const {
         return m_root_bin.sibling();
     }
 
+    if( bitmap == BITMAP_EMPTY )
+        return cur_bin;
+
     return bin_t(cur_bin.base_left().toUInt() + bitmap_to_bin(~bitmap));
 }
 

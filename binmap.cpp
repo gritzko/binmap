@@ -50,54 +50,72 @@ static const bitmap_t BITMAP[] = {
 };
 
 
-static const uint32_t BITMAP_TO_BIN[] = {
-    -1,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
-     8,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
-    10,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
-     9,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
-    12,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
-     8,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
-    10,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
-     9,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
-    14,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
-     8,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
-    10,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
-     9,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
-    13,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
-     8,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
-    10,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  3,
-    11,  0,  2,  1,  4,  0,  2,  1,  6,  0,  2,  1,  5,  0,  2,  7
-};
-
-
 /**
  * Get the leftmost bin that coresponded to bitmap (the bin is filled in bitmap)
  */
-static inline bin_t::uint_t trace_bitmap(register bitmap_t b) {
+static inline bin_t::uint_t bitmap_to_bin(register bitmap_t b) {
+    static const unsigned char BITMAP_TO_BIN[] = {
+        -1, 0, 2, 1, 4, 0, 2, 1, 6, 0, 2, 1, 5, 0, 2, 3,
+         8, 0, 2, 1, 4, 0, 2, 1, 6, 0, 2, 1, 5, 0, 2, 3,
+        10, 0, 2, 1, 4, 0, 2, 1, 6, 0, 2, 1, 5, 0, 2, 3,
+         9, 0, 2, 1, 4, 0, 2, 1, 6, 0, 2, 1, 5, 0, 2, 3,
+        12, 0, 2, 1, 4, 0, 2, 1, 6, 0, 2, 1, 5, 0, 2, 3,
+         8, 0, 2, 1, 4, 0, 2, 1, 6, 0, 2, 1, 5, 0, 2, 3,
+        10, 0, 2, 1, 4, 0, 2, 1, 6, 0, 2, 1, 5, 0, 2, 3,
+         9, 0, 2, 1, 4, 0, 2, 1, 6, 0, 2, 1, 5, 0, 2, 3,
+        14, 0, 2, 1, 4, 0, 2, 1, 6, 0, 2, 1, 5, 0, 2, 3,
+         8, 0, 2, 1, 4, 0, 2, 1, 6, 0, 2, 1, 5, 0, 2, 3,
+        10, 0, 2, 1, 4, 0, 2, 1, 6, 0, 2, 1, 5, 0, 2, 3,
+         9, 0, 2, 1, 4, 0, 2, 1, 6, 0, 2, 1, 5, 0, 2, 3,
+        13, 0, 2, 1, 4, 0, 2, 1, 6, 0, 2, 1, 5, 0, 2, 3,
+         8, 0, 2, 1, 4, 0, 2, 1, 6, 0, 2, 1, 5, 0, 2, 3,
+        10, 0, 2, 1, 4, 0, 2, 1, 6, 0, 2, 1, 5, 0, 2, 3,
+        11, 0, 2, 1, 4, 0, 2, 1, 6, 0, 2, 1, 5, 0, 2, 7
+    };
+
     assert( sizeof(bitmap_t) <= 4 );
     assert( b != BITMAP_EMPTY );
 
-    if( b & 1 ) {
-        if( b == static_cast<bitmap_t>(0xffffffff) )
-            return 31;
-        if( b == static_cast<bitmap_t>(0xffff) )
+    unsigned char t;
+
+    t = BITMAP_TO_BIN[ b & 0xff ];
+    if( t < 16 ) {
+        if( t != 7 )
+            return static_cast<bin_t::uint_t>(t);
+
+        b += 1;
+        b &= -b;
+        if( !b )
+            return BITMAP_LAYER_BITS / 2;
+        if( b >= 0x10000 )
             return 15;
-        return BITMAP_TO_BIN[b & 0xff];
+        return 7;
     }
 
-    bin_t::uint_t v = 0;
-    if( !(b & 0xffff) ) {
-        b >>= 16;
-        v = 32;
+    b >>= 8;
+    t = BITMAP_TO_BIN[ b & 0xff ];
+    if( t <= 15 )
+            return 16 + t;
+
+    /* Recursion */
+    // return 32 + bitmap_to_bin( b >> 16 );
+
+    assert( sizeof(bitmap_t) == 4 );
+
+    b >>= 8;
+    t = BITMAP_TO_BIN[ b & 0xff ];
+    if( t < 16 ) {
+        if( t != 7 )
+            return 32 + static_cast<bin_t::uint_t>(t);
+
+        b += 1;
+        b &= -b;
+        if( b >= 0x10000 )
+            return 47;
+        return 39;
     }
 
-    if( b == static_cast<bitmap_t>(0xffff) )
-        return v + 15;
-
-    if( 0 == (b & 0xff) )
-        return v + 16 + BITMAP_TO_BIN[(b >> 8) & 0xff];
-    return v + BITMAP_TO_BIN[b & 0xff];
-}
+    return 48 + BITMAP_TO_BIN[ b >> 8 ];}
 
 
 /* Methods */
@@ -420,7 +438,7 @@ bin_t binmap_t::find_empty() const {
         return m_root_bin.sibling();
     }
 
-    return bin_t(cur_bin.base_left().toUInt() + trace_bitmap(~bitmap));
+    return bin_t(cur_bin.base_left().toUInt() + bitmap_to_bin(~bitmap));
 }
 
 

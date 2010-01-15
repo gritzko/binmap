@@ -107,6 +107,12 @@ public:
 
 
     /**
+     * Get total size of the binmap
+     */
+    size_t total_size() const;
+
+
+    /**
      * Echo the binmap status to stdout
      */
     void status() const;
@@ -149,6 +155,12 @@ private:
      * Pack a trace of cells
      */
     void pack_cells(ref_t * cells);
+
+
+    /**
+     * Trace the bin basing on bitmap
+     */
+    bin_t trace_bin_on_bitmap(const bin_t & bin, bitmap_t bitmap) const;
 
 
     /**

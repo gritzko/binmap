@@ -115,10 +115,29 @@ static inline bin_t::uint_t bitmap_to_bin(register bitmap_t b) {
         return 39;
     }
 
-    return 48 + BITMAP_TO_BIN[ b >> 8 ];}
+    return 48 + BITMAP_TO_BIN[ b >> 8 ];
+}
+
+
+/**
+ * Trace the bin basing on bitmap
+ */
+bin_t binmap_t::trace_bin_on_bitmap(const bin_t & bin, bitmap_t bitmap) const {
+    if( bitmap == BITMAP_FILLED ) {
+        if( m_root_bin.is_all() )
+            return bin_t::NONE;
+        return m_root_bin.sibling();
+    }
+
+    if( bitmap == BITMAP_EMPTY )
+        return bin;
+
+    return bin_t(bin.base_left().toUInt() + bitmap_to_bin(~bitmap));
+}
 
 
 /* Methods */
+
 
 /**
  * Constructor
@@ -432,16 +451,7 @@ bin_t binmap_t::find_empty() const {
         }
     }
 
-    if( bitmap == BITMAP_FILLED ) {
-        if( m_root_bin.is_all() )
-            return bin_t::NONE;
-        return m_root_bin.sibling();
-    }
-
-    if( bitmap == BITMAP_EMPTY )
-        return cur_bin;
-
-    return bin_t(cur_bin.base_left().toUInt() + bitmap_to_bin(~bitmap));
+    return trace_bin_on_bitmap(cur_bin, bitmap);
 }
 
 
@@ -688,6 +698,15 @@ size_t binmap_t::cells_number() const {
 
 
 /**
+ * Get total size of the binmap
+ */
+size_t binmap_t::total_size() const {
+    return sizeof(*this) + 16 * sizeof(cell_t) * blocks_number();
+}
+
+
+
+/**
  * Echo the binmap status to stdout
  */
 void binmap_t::status() const {
@@ -698,7 +717,7 @@ void binmap_t::status() const {
         printf("\n");
     }
 
-    printf("size: %u bytes\n", sizeof(*this) + (16 * sizeof(cell_t)) * blocks_number());
+    printf("size: %u bytes\n", total_size());
     printf("cells number: %u (of %u)\n", cells_number(), 16 * blocks_number());
     printf("root bin: %llu\n", static_cast<unsigned long long>(m_root_bin.toUInt()));
 

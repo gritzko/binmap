@@ -80,9 +80,9 @@ void process(const char * filename, FILE * fin) {
         printf("  bitmap filling: %.2f%%\n", 100.0 * count / 8 / size);
         printf("  bitmap size: %u bytes\n", size);
         printf("  binmap size: %u bytes\n", binmap.total_size());
-        printf("  binmap size efficiency: %.2f%%\n", 100.0 * size / binmap.total_size());
+        printf("  binmap size efficiency: %.2f%%\n", 100.0 * binmap.total_size() / size);
         printf("  binmap packed size: %u bytes\n", sizeof(binmap) + sizeof(cell_t) * binmap.cells_number());
-        printf("  binmap packed size efficiency: %.2f%%\n", 100.0 * size / (sizeof(binmap) + sizeof(cell_t) * binmap.cells_number()));
+        printf("  binmap packed size efficiency: %.2f%%\n", 100.0 * (sizeof(binmap) + sizeof(cell_t) * binmap.cells_number()) / size);
 
         printf("\n");
     }

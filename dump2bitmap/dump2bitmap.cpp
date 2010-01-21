@@ -210,7 +210,6 @@ int main(int argc, char ** argv) {
 
     if( argc > 1 ) {
         s_finname = argv[1];
-        s_finname = "/home/apronchenkov/git/binmap/dump2bitmap/0.dump";
         s_fin = fopen(s_finname, "rb");
 
         if( s_fin == NULL )

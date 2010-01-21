@@ -18,8 +18,9 @@
  * The following value is called as base_offset:
  *   layer_offset * 2^layer -- is called
  *
- * Bin numbers in the tail111 encoding: meaningless bits in the tail are set to 0111...11, while the head denotes the offset.
- *   bin = 2 ^ (layer + 1) * layer_offset + 2 ^ layer - 1
+ * Bin numbers in the tail111 encoding: meaningless bits in
+ * the tail are set to 0111...11, while the head denotes the offset.
+ * bin = 2 ^ (layer + 1) * layer_offset + 2 ^ layer - 1
  *
  * Thus, 1101 is the bin at layer 1, offset 3 (i.e. fourth).
  */
@@ -63,9 +64,10 @@ public:
     static const bin_t ALL;
 
 
-//    /**
-//     * The array must have 64 cells, as it is the max number of peaks possible + 1 (and there are no reasons to assume there will be less in any given case).
-//     */
+    /**
+     * The array must have 64 cells, as it is the max number
+     * of peaks possible + 1 (and there are no reasons to
+     * assume there will be less in any given case).  */
 //    static int peaks(bint_t length, bin_t * peaks);
 
 
@@ -100,19 +102,19 @@ public:
 
 
     /**
-     * Operator less
+     * Operator less than
      */
     bool operator < (const bin_t & bin) const;
 
 
     /**
-     * Operator great
+     * Operator greater than
      */
     bool operator > (const bin_t & bin) const;
 
 
     /**
-     * Gets the begining of the bin interval
+     * Gets the beginning of the bin(ary interval)
      */
     uint_t base_offset() const;
 
@@ -124,7 +126,7 @@ public:
 
 
     /**
-     * Gets the bin layer
+     * Gets the bin's layer, i.e. log2(width)
      */
     int layer() const;
 
@@ -142,19 +144,19 @@ public:
 
 
     /**
-     * Does the bin is none
+     * Whether the bin is none
      */
     bool is_none() const;
 
 
     /**
-     * Does the bin is all
+     * Whether the bin is all
      */
     bool is_all() const;
 
 
     /**
-     * Does the bin is base (layer == 0)
+     * Whether the bin is base (layer == 0)
      */
     bool is_base() const;
 

@@ -4,6 +4,12 @@
 #include <cstddef>
 #include "bin.h"
 
+#ifndef _MSC_VER
+#  include <stdint.h>
+#else
+typedef unsigned __int32 uint32_t;
+#endif
+
 
 /**
  * Type of bitmap
@@ -16,11 +22,7 @@ typedef uint32_t bitmap_t;
 typedef uint32_t ref_t;
 
 
-/**
- * Type of filling
- */
-typedef enum { FILL_EMPTY, FILL_MIXED, FILL_FILLED } fill_t;
-
+#pragma pack(push, 1)
 
 /**
  * Structure of cell halves
@@ -40,11 +42,15 @@ typedef union {
     struct {
         half_t m_left;
         half_t m_right;
+        bool m_is_left_ref : 1;
+        bool m_is_right_ref : 1;
+        bool m_is_free : 1;
     };
     ref_t m_free_next;
 } cell_t;
 
 
+#pragma pack(pop)
 
 /**
  * Binmap class
@@ -67,7 +73,7 @@ public:
     /**
      * Get bins
      */
-    fill_t get(bin_t bin) const;
+    bool get(bin_t bin) const;
 
 
     /**
@@ -76,10 +82,16 @@ public:
     void set(bin_t bin);
 
 
-//    /**
-//     * Reset bins
-//     */
-//    void reset(bin_t bin);
+    /**
+     * Reset bins
+     */
+    void reset(bin_t bin);
+
+
+    /**
+     * Find first empty bin
+     */
+    bin_t find_empty() const;
 
 
     /**
@@ -92,6 +104,12 @@ public:
      * Get cells number
      */
     size_t cells_number() const;
+
+
+    /**
+     * Get total size of the binmap
+     */
+    size_t total_size() const;
 
 
     /**
@@ -113,70 +131,6 @@ private:
      * Releases the cell
      */
     void free_cell(ref_t cell);
-
-
-    /**
-     * Get postion of the left half flag
-     */
-    static inline size_t left_n(ref_t cell);
-
-    /**
-     * Get mask of the left half flag
-     */
-    static inline size_t left_m(ref_t cell);
-
-    /**
-     * Get position of the right half flag
-     */
-    static inline uint32_t right_n(ref_t cell);
-
-    /**
-     * Get position of the right half mask
-     */
-    static inline uint32_t right_m(ref_t cell);
-
-
-    /**
-     * Check type of the left half
-     */
-    bool is_ref_left(ref_t cell) const;
-
-    /**
-     * Check type of the right half
-     */
-    bool is_ref_right(ref_t cell) const;
-
-    /**
-     * Check type of the left half
-     */
-    bool is_bitmap_left(ref_t cell) const;
-
-    /**
-     * Check type of the right half
-     */
-    bool is_bitmap_right(ref_t cell) const;
-
-
-    /**
-     * Set type of the left half
-     */
-    void set_ref_left(ref_t cell) const;
-
-    /**
-     * Set type of the left half
-     */
-    void set_ref_right(ref_t cell) const;
-
-    /**
-     * Set type of the left half
-     */
-    void set_bitmap_left(ref_t cell) const;
-
-    /**
-     * Set type of the left half
-     */
-    void set_bitmap_right(ref_t cell) const;
-
 
 
     /**
@@ -204,14 +158,15 @@ private:
 
 
     /**
+     * Trace the bin basing on bitmap
+     */
+    bin_t trace_bin_on_bitmap(const bin_t & bin, bitmap_t bitmap) const;
+
+
+    /**
      * Pointer to the list of blocks
      */
     cell_t * m_cell;
-
-    /**
-     * List of bit-flags corresponded to halves;
-     */
-    uint32_t * m_halves_flags;
 
     /**
      * Number of allocated blocks (16 * cell)
@@ -232,6 +187,12 @@ private:
      * The root bin
      */
     bin_t m_root_bin;
+
+
+    /**
+     * Copy constructor
+     */
+    binmap_t(const binmap_t &); /* undefined */
 };
 
 #endif // BINMAP_H

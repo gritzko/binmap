@@ -1,13 +1,6 @@
 #ifndef BIN64_H
 #define BIN64_H
 
-#include <assert.h>
-#ifdef _MSC_VER
-#  include "compat/stdint.h"
-#else
-#  include <stdint.h>
-#endif
-
 
 /**
  * Numbering for (aligned) logarithmical bins.
@@ -180,6 +173,24 @@ public:
 
 
     /**
+     * Sets this object to the parent
+     */
+    bin_t & to_parent();
+
+
+    /**
+     * Sets this object to the left child
+     */
+    bin_t & to_left();
+
+
+    /**
+     * Sets this object to the right child
+     */
+    bin_t & to_right();
+
+
+    /**
      * Gets the parent bin
      */
     bin_t parent() const;
@@ -302,11 +313,62 @@ inline bool bin_t::operator > (const bin_t & bin) const {
 
 
 /**
+ * Sets this object to the parent
+ */
+inline bin_t & bin_t::to_parent() {
+    const uint_t lbs = layer_bits();
+    const uint_t nlbs = -2 - lbs;
+
+    m_v = (m_v | lbs) & nlbs;
+
+    return *this;
+}
+
+
+/**
+ * Sets this object to the left child
+ */
+inline bin_t & bin_t::to_left() {
+    register uint_t t;
+
+    t = m_v + 1;
+    t &= -t;
+    t >>= 1;
+
+//    if (t == 0)
+//        return NONE;
+
+    m_v ^= t;
+
+    return *this;
+}
+
+
+/**
+* Sets this object to the right child
+*/
+inline bin_t & bin_t::to_right() {
+    register uint_t t;
+
+    t = m_v + 1;
+    t &= -t;
+    t >>= 1;
+
+//    if (t == 0)
+//        return NONE;
+
+    m_v += t;
+
+    return *this;
+}
+
+
+/**
  * Gets the parent bin
  */
 inline bin_t bin_t::parent() const {
     const uint_t lbs = layer_bits();
-    const uint_t nlbs = ~(lbs + 1);
+    const uint_t nlbs = -2 - lbs;
 
     return bin_t((m_v | lbs) & nlbs);
 }
@@ -316,7 +378,11 @@ inline bin_t bin_t::parent() const {
  * Gets the left child
  */
 inline bin_t bin_t::left() const {
-    const uint_t t = (layer_bits() + 1) >> 2;
+    register uint_t t;
+
+    t = m_v + 1;
+    t &= -t;
+    t >>= 1;
 
 //    if (t == 0)
 //        return NONE;
@@ -329,7 +395,11 @@ inline bin_t bin_t::left() const {
  * Gets the right child
  */
 inline bin_t bin_t::right() const {
-    const uint_t t = (layer_bits() + 1) >> 2;
+    register uint_t t;
+
+    t = m_v + 1;
+    t &= -t;
+    t >>= 1;
 
 //    if (t == 0)
 //        return NONE;
@@ -374,7 +444,7 @@ inline bool bin_t::is_left() const {
  * Checks wheither is bin is a left child
  */
 inline bool bin_t::is_right() const {
-    return m_v & (layer_bits() + 1);
+    return !is_left();
 }
 
 

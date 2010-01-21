@@ -18,11 +18,16 @@ const bin_t bin_t::ALL(static_cast<bin_t::uint_t>(0xffffffffffffffffULL) >> 1);
  * Gets the layer value of a bin
  */
 int bin_t::layer() const {
+    if( is_none() )
+        return -1;
+
     int r = 0;
 
-    uint_t tail = (layer_bits() + 1) >> 1;
+    register uint_t tail;
+    tail = m_v + 1;
+    tail = tail & (-tail);
 
-    if( tail > 0xffffffffU ) {
+    if( tail > 0x80000000U ) {
         r = 32;
         tail >>= 16;    // FIXME: hide warning
         tail >>= 16;
@@ -32,7 +37,7 @@ int bin_t::layer() const {
     // http://graphics.stanford.edu/~seander/bithacks.html
     static const int DeBRUIJN[32] = { 0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9 };
 
-    return r + DeBRUIJN[ (static_cast<uint32_t>(tail) * 0x077CB531U) >> 27 ];
+    return r + DeBRUIJN[ 0x1f & ((tail * 0x077CB531U) >> 27) ];
 }
 
 
